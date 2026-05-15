@@ -11,9 +11,8 @@ import com.restroly.qrmenu.menu.dto.MenuResponseDTO;
 import com.restroly.qrmenu.menu.entity.Menu;
 import com.restroly.qrmenu.menu.mapper.MenuMapper;
 import com.restroly.qrmenu.menu.repository.MenuRepository;
-import com.restroly.qrmenu.menu.service.MenuService;
 
-import com.restroly.qrmenu.user.exception.DuplicateResourceException;
+import com.restroly.qrmenu.common.exception.DuplicateResourceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

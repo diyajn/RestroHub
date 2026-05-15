@@ -1,4 +1,4 @@
-package com.restroly.qrmenu.user.exception;
+package com.restroly.qrmenu.common.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

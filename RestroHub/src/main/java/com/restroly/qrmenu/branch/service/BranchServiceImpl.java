@@ -5,7 +5,6 @@ import com.restroly.qrmenu.branch.dto.BranchResponseDTO;
 import com.restroly.qrmenu.branch.entity.Branch;
 import com.restroly.qrmenu.branch.mapper.BranchMapper;
 import com.restroly.qrmenu.branch.repository.BranchRepository;
-import com.restroly.qrmenu.branch.service.BranchService;
 import com.restroly.qrmenu.common.exception.ResourceNotFoundException;
 import com.restroly.qrmenu.common.generic.PageResponseDTO;
 import com.restroly.qrmenu.menu.entity.Menu;
@@ -13,7 +12,7 @@ import com.restroly.qrmenu.menu.repository.MenuRepository;
 import com.restroly.qrmenu.restaurant.entity.Restaurant;
 import com.restroly.qrmenu.restaurant.repository.RestaurantRepository;
 
-import com.restroly.qrmenu.user.exception.DuplicateResourceException;
+import com.restroly.qrmenu.common.exception.DuplicateResourceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
