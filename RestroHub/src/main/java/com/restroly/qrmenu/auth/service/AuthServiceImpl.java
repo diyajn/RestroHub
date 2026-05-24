@@ -1,10 +1,14 @@
 package com.restroly.qrmenu.auth.service;
 
-import com.restroly.qrmenu.auth.dto.AuthResponse;
-import com.restroly.qrmenu.auth.dto.LoginRequest;
-import com.restroly.qrmenu.auth.dto.RefreshTokenRequest;
+import com.restroly.qrmenu.auth.dto.*;
 import com.restroly.qrmenu.common.exception.BusinessException;
+import com.restroly.qrmenu.restaurant.dto.RestaurantRequestDTO;
+import com.restroly.qrmenu.restaurant.dto.RestaurantResponseDTO;
+import com.restroly.qrmenu.restaurant.service.RestaurantService;
 import com.restroly.qrmenu.security.JwtTokenProvider;
+import com.restroly.qrmenu.user.dto.UserRequest;
+import com.restroly.qrmenu.user.dto.UserResponse;
+import com.restroly.qrmenu.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,6 +21,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,7 +35,10 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
+    private final UserService userService;
+    private final RestaurantService restaurantService;
 
+    // ── LOGIN ──────────────────────────────────────────────────────────────────
     @Override
     public AuthResponse login(LoginRequest loginRequest) {
         log.info("Login attempt for user: {}", loginRequest.getUsername());
@@ -72,6 +81,52 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    // ── REGISTER ───────────────────────────────────────────────────────────────
+    @Override
+    @Transactional
+    public RegisterResponse register(RegisterRequest request) {
+        log.info("Registration attempt for email: {}", request.getEmail());
+
+        // Step 1: Create user with roles (UserServiceImpl handles role assignment)
+        UserRequest userRequest = UserRequest.builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .email(request.getEmail())
+                .password(request.getPassword())
+                .phone(request.getPhone())
+                .roleIds(request.getRoleIds())
+                .isActive(true)
+                .build();
+
+        UserResponse savedUser = userService.registerUser(userRequest);
+        log.info("User registered successfully with ID: {}", savedUser.getId());
+
+        // Step 2: Create restaurant if restaurant details are provided
+        RestaurantResponseDTO savedRestaurant = null;
+        if (StringUtils.hasText(request.getRestaurantName())) {
+            log.info("Creating restaurant '{}' for user: {}", request.getRestaurantName(), request.getEmail());
+
+            RestaurantRequestDTO restaurantRequest = RestaurantRequestDTO.builder()
+                    .name(request.getRestaurantName())
+                    .description(request.getRestaurantDescription())
+                    .phoneNumber(request.getRestaurantPhone())
+                    .isActive(true)
+                    .build();
+
+            savedRestaurant = restaurantService.createRestaurant(restaurantRequest);
+            log.info("Restaurant created successfully with ID: {}", savedRestaurant.getRestId());
+        }
+
+        return RegisterResponse.builder()
+                .user(savedUser)
+                .restaurant(savedRestaurant)
+                .message(savedRestaurant != null
+                        ? "Registration successful. User and restaurant created."
+                        : "Registration successful.")
+                .build();
+    }
+
+    // ── REFRESH TOKEN ──────────────────────────────────────────────────────────
     @Override
     public AuthResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
         String refreshToken = refreshTokenRequest.getRefreshToken();
@@ -109,6 +164,7 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
+    // ── LOGOUT ─────────────────────────────────────────────────────────────────
     @Override
     public void logout(String token) {
         // In a production system, you would typically:

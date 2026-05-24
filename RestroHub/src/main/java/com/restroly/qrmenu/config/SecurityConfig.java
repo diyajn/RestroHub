@@ -40,7 +40,9 @@ public class SecurityConfig {
 			// User registration
 			"/api/v1/users/register",
 			// Public api endpoints
-			"/public/api/v1/**"
+			"/public/api/v1/**",
+			// NEW: Allow fetching active roles publicly (needed for registration form)
+			"/api/v1/roles/active"
 	};
 
 	private static final String[] PUBLIC_GET_URLS = {

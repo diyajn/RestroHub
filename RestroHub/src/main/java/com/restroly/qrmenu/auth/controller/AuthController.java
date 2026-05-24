@@ -1,9 +1,6 @@
 package com.restroly.qrmenu.auth.controller;
 
-import com.restroly.qrmenu.auth.dto.AuthResponse;
-import com.restroly.qrmenu.auth.dto.GoogleAuthRequest;
-import com.restroly.qrmenu.auth.dto.LoginRequest;
-import com.restroly.qrmenu.auth.dto.RefreshTokenRequest;
+import com.restroly.qrmenu.auth.dto.*;
 import com.restroly.qrmenu.auth.service.AuthService;
 import com.restroly.qrmenu.auth.service.GoogleAuthService;
 import com.restroly.qrmenu.common.dto.ApiResponse;
@@ -120,6 +117,42 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(authResponse, "Login successful"));
     }
 
+    @PostMapping("/register")
+    @Operation(
+            summary = "Register a new user",
+            description = "Registers a new user with optional role selection and restaurant details. " +
+                    "If restaurantName is provided, a restaurant entry will also be created."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "201",
+                    description = "Registration successful",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = RegisterResponse.class)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "Validation failed",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "User already exists",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
+    })
+    public ResponseEntity<ApiResponse<RegisterResponse>> register(
+            @Valid @RequestBody RegisterRequest request) {
+
+        log.info("Registration request received for email: {}", request.getEmail());
+
+        RegisterResponse response = authService.register(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(response, response.getMessage()));
+    }
     @PostMapping("/google")
     @Operation(
             summary = "Google OAuth authentication",
